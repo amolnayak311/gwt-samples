@@ -1,0 +1,2 @@
+serviceClass: com.example.studentmgmt.nonmvp.client.GreetingService
+path: FBF5DCBBC441CF03682D89CF114F8D8C.gwt.rpc
