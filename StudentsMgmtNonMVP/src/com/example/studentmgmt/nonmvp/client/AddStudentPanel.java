@@ -1,14 +1,17 @@
 package com.example.studentmgmt.nonmvp.client;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
@@ -47,7 +50,7 @@ public class AddStudentPanel extends Composite {
 	private final Button resetFields;
 	private final Button submit;
 
-	private final Map<String, String> subjectsMap = new HashMap<String, String>();
+	private final Map<String, String> subjectsMap = new TreeMap<String, String>();
 
 	public AddStudentPanel() {
 		// initialize the subjects, get this from the cache or using RPC call
@@ -129,7 +132,69 @@ public class AddStudentPanel extends Composite {
 		table.setWidget(rowCounter++, columnCounter++ % 2, extraSubjects);
 
 		resetFields = new Button("&nbsp;&nbsp;Reset&nbsp;&nbsp;");
+		resetFields.addClickHandler(new ClickHandler() {
+
+			@Override
+			public void onClick(ClickEvent event) {
+				studentName.setText("");
+				maleGenderRB.setValue(false);
+				femaleGenderRB.setValue(false);
+				dateOfBirth.setValue(null, false);
+				clearListBox(classListBox);
+				clearListBox(subjects);
+				extraClassesBox.setValue(false);
+				clearListBox(extraSubjects);
+				extraSubjects.setVisible(false);
+				extraSubjectsLabel.setVisible(false);
+			}
+		});
+
 		submit = new Button("&nbsp;&nbsp;Submit&nbsp;&nbsp;");
+
+		submit.addClickHandler(new ClickHandler() {
+			@Override
+			public void onClick(ClickEvent event) {
+				// Lets validate the fields one by one
+				String name = studentName.getText();
+				if (name == null || "".equals(name.trim())) {
+					Window.alert("Student name cannot be empty");
+					studentName.setFocus(true);
+					return;
+				}
+
+				if (!(maleGenderRB.getValue() || femaleGenderRB.getValue())) {
+					Window.alert("Select a gender");
+					maleGenderRB.setFocus(true);
+					return;
+				}
+
+				List<String> selectedSubjects = getSelectedItems(subjects);
+				if (!(selectedSubjects.contains("English")
+						|| selectedSubjects.contains("French") || selectedSubjects
+						.contains("German"))) {
+					Window.alert("Atleast one language is mandatory");
+					return;
+				}
+
+				if (selectedSubjects.size() < 4) {
+					Window.alert("You need to select atleast 4 subjects");
+					return;
+				}
+
+				Window.alert("Submitted successfully");
+
+			}
+
+			private List<String> getSelectedItems(ListBox listBox) {
+				List<String> selectedValues = new ArrayList<String>();
+				for (int i = 0; i < listBox.getItemCount(); i++) {
+					if (listBox.isItemSelected(i)) {
+						selectedValues.add(listBox.getItemText(i));
+					}
+				}
+				return selectedValues;
+			}
+		});
 
 		FlexTable buttonsFt = new FlexTable();
 		buttonsFt.setCellSpacing(10);
@@ -143,6 +208,12 @@ public class AddStudentPanel extends Composite {
 		layoutPanel.setWidgetLeftRight(table, 1, Unit.PCT, 1, Unit.PCT);
 		layoutPanel.setWidgetTopBottom(table, 1, Unit.PCT, 1, Unit.PCT);
 		initWidget(layoutPanel);
+	}
+
+	private void clearListBox(ListBox listBox) {
+		for (int i = 0; i < listBox.getItemCount(); i++) {
+			listBox.setItemSelected(i, false);
+		}
 	}
 
 	/**
